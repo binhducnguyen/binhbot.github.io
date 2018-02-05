@@ -916,7 +916,7 @@ def get_playable_url(url):
 					dlg = xbmcgui.Dialog()
 					dlg.ok("Chưa nhập FShare cá nhân!!!", line1, line2, line3)
 		else:
-			header  = "Không tìm thấy Add-on Settings của XShare"
+			header  = "Không tìm thấy thông tin Fshare trong Settings của XShare"
 			message = "Bạn cần cài addon \"XShare XBMC HDVideo\" và thiết lập FShare VIP trong XShare để xem nội dung này"
 			xbmc.executebuiltin('Notification("%s", "%s", "%d", "%s")' % (header, message, 10000, ''))
 		return ""
