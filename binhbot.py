@@ -1,6 +1,8 @@
 #!/usr/bin/python
 #coding=utf-8
 import httplib2, json, re, urllib, os, uuid, contextlib, zipfile, random, base64, time, thread
+import xbmcplugin,xbmcgui,xbmcaddon,xbmc
+import autorun
 from datetime import datetime
 # Tham khảo xbmcswift2 framework cho kodi addon tại
 # http://xbmcswift2.readthedocs.io/en/latest/
@@ -1096,3 +1098,34 @@ if os.path.exists(cid_path)==False:
 		f.write(str(uuid.uuid1()))
 if __name__ == '__main__':
 	plugin.run()
+
+	
+elif 'drive.google.com' in url:
+		id = url.split('=')[-1]
+		mediaUrl = gdrive.get_drive_download(id)
+		
+elif 'drive.google.vn' in url:
+		furl = url.replace('drive.google.vn','drive.google.com')
+		id = furl.split('=')[-1]
+		mediaUrl = "https://drive.google.com/uc?export=download&id=%s" % id
+		res = requests.get("https://drive.google.com/file/d/%s" % id)
+		if "fmt_stream_map" in res.text:
+		    jn = json.loads(re.compile('(\["fmt_stream_map".+?\])').findall(res.text)[0])
+		    try:
+		        mediaUrl = re.compile("22\|(.+?),").findall(jn[1])[0]
+		    except:
+		        mediaUrl = re.compile("18\|(.+?),").findall(jn[1])[0]
+		    tail = "|User-Agent=%s&Cookie=%s" % (urllib.quote(res.request.headers["User-Agent"]),urllib.quote(res.headers["Set-Cookie"]))
+		    mediaUrl += tail
+		else:
+		    ses = requests.Session()
+		    res = ses.head(mediaUrl)
+		    confirm = ""
+		    for k,v in res.cookies.iteritems():
+		        if "download_warning_" in k:
+		            confirm = v
+		    if confirm != "":
+		        confirmed_url = "%s&confirm=%s" % (mediaUrl,confirm)
+		        res = ses.head(confirmed_url)
+		        if res.status_code == 302:
+		            mediaUrl = confirmed_url
