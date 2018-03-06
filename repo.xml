@@ -23,24 +23,22 @@
     <platform>all</platform>
   </extension>
 </addon>
-<addon
-  id="plugin.video.bongdatructuyen"
-  version="1.0.7"
-  name="[COLOR FFFFFFFF]bongda[/COLOR][COLOR FF32CD32]tructuyen[/COLOR][COLOR FFFFFFFF].vn[/COLOR]"
-  provider-name="traitravinh">
-  <requires>
-  </requires>
-  <extension point="xbmc.python.pluginsource"
-            library="bongdatructuyen.py">
-        <provides>video</provides>
-  </extension>
-  <extension point="xbmc.addon.metadata">
-    <summary>Watch Soccer Live/Highlights using SopCast, AceStream. [COLOR red]Require[/COLOR] [COLOR FFFFA500]P2P-Streams addons[/COLOR] [COLOR red]to play streams[/COLOR]</summary>
-    <description>Watch Soccer Live/Highlights Videos. Need p2p-streams addon installed and configured to work</description>
-    <platform>all</platform>
-  </extension>
-</addon>
-
+<addon id="xbmc.repo.xshare" name="Xshare Repository" version="1.0.0" provider-name="thaitni">
+	<extension point="xbmc.addon.repository" name="Official XBMC.org Add-on Repository">
+		<info compressed="true">https://raw.githubusercontent.com/thaitni/xbmc.repo.xshare/master/addons.xml</info>
+		<checksum>https://raw.githubusercontent.com/thaitni/xbmc.repo.xshare/master/addons.xml.md5</checksum>
+		<datadir zip="true">https://raw.githubusercontent.com/thaitni/xbmc.repo.xshare/master</datadir>
+		<hashes>true</hashes>
+	</extension>
+	<extension point="xbmc.addon.metadata">
+		<summary>Play Video with find subs on XBMC from many host</summary>
+		<description>Download and install addons from Xshare Repository: Watch movies from fshare.vn, 4share.vn, tenlua.vn, ...</description>
+		<language>en</language>
+		<platform>all</platform>
+		<license>GNU General Public License - v2</license>
+		<source>https://github.com/thaitni/xbmc.repo.xshare</source>
+		<email>thai@thanhthai.net</email>
+	</extension>	
 <addon
   id="plugin.video.chiasenhac"
   version="0.0.2"
