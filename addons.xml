@@ -38,7 +38,8 @@
 		<license>GNU General Public License - v2</license>
 		<source>https://github.com/thaitni/xbmc.repo.xshare</source>
 		<email>thai@thanhthai.net</email>
-	</extension>	
+	</extension>
+</addon>	
 <addon
   id="plugin.video.kodi4vn.launcher"
   version="2.3.8"
