@@ -22,9 +22,7 @@
     <description>Ứng dụng chỉ dùng cho mục đích cá nhân</description>
     <platform>all</platform>
   </extension>
-</addon>
-	
-	
+</addon>	
 	
 <addon
   id="plugin.video.kodi4vn.launcher"
