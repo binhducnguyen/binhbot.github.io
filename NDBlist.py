@@ -175,9 +175,9 @@ def getItems(url_path="0", tq="select A,B,C,D,E"):
 		if "plugin://" in item["path"]:
 			if "install-repo" in item["path"]:
 				item["is_playable"] = False
-			elif re.search("plugin.video.thongld.vnplaylist/(.+?)/.+?\://", item["path"]):
+			elif re.search("plugin.video.ndbzone/(.+?)/.+?\://", item["path"]):
 				match = re.search(
-					"plugin.video.thongld.vnplaylist(/.+?/).+?\://", item["path"])
+					"plugin.video.ndbzone(/.+?/).+?\://", item["path"])
 				tmp = item["path"].split(match.group(1))
 				tmp[-1] = urllib.quote_plus(tmp[-1])
 				item["path"] = match.group(1).join(tmp)
@@ -256,42 +256,42 @@ def getItems(url_path="0", tq="select A,B,C,D,E"):
 		if item["label2"].startswith("http"):
 			item["path"] += "?sub=" + urllib.quote_plus(item["label2"].encode("utf8"))
 		items += [item]
-	if url_path == "0":
-		add_playlist_item = {
-			"context_menu": [
-				ClearPlaylists(""),
-			],
-			"label": "[COLOR yellow]*** Thêm Playlist ***[/COLOR]",
-			"path": "%s/add-playlist" % (pluginrootpath),
-			"thumbnail": "http://1.bp.blogspot.com/-gc1x9VtxIg0/VbggLVxszWI/AAAAAAAAANo/Msz5Wu0wN4E/s1600/playlist-advertorial.png"
-		}
-		items += [add_playlist_item]
-		playlists = plugin.get_storage('playlists')
-		if 'sections' in playlists:
-			for section in playlists['sections']:
-				item = {
-					"context_menu": [
-						ClearPlaylists(section),
-					]
-				}
-				if "@@" in section:
-					tmp = section.split("@@")
-					passw = tmp[-1]
-					section = tmp[0]
-					item["label"] = section
-					item["path"] = "%s/password-section/%s/%s" % (
-						pluginrootpath,
-						passw,
-						section.split("] ")[-1]
-					)
-				else:
-					item["label"] = section
-					item["path"] = "%s/section/%s" % (
-						pluginrootpath,
-						section.split("] ")[-1]
-					)
-				item["thumbnail"] = "http://1.bp.blogspot.com/-gc1x9VtxIg0/VbggLVxszWI/AAAAAAAAANo/Msz5Wu0wN4E/s1600/playlist-advertorial.png"
-				items.append(item)
+	#if url_path == "0":
+	#	add_playlist_item = {
+	#		"context_menu": [
+	#			ClearPlaylists(""),
+	#		],
+	#		"label": "[COLOR yellow]*** Thêm Playlist ***[/COLOR]",
+	#		"path": "%s/add-playlist" % (pluginrootpath),
+	#		"thumbnail": "http://1.bp.blogspot.com/-gc1x9VtxIg0/VbggLVxszWI/AAAAAAAAANo/Msz5Wu0wN4E/s1600/playlist-advertorial.png"
+	#	}
+	#	items += [add_playlist_item]
+	#	playlists = plugin.get_storage('playlists')
+	#	if 'sections' in playlists:
+	#		for section in playlists['sections']:
+	#			item = {
+	#				"context_menu": [
+	#					ClearPlaylists(section),
+	#				]
+	#			}
+	#			if "@@" in section:
+	#				tmp = section.split("@@")
+	#				passw = tmp[-1]
+	#				section = tmp[0]
+	#				item["label"] = section
+	#				item["path"] = "%s/password-section/%s/%s" % (
+	#					pluginrootpath,
+	#					passw,
+	#					section.split("] ")[-1]
+	#				)
+	#			else:
+	#				item["label"] = section
+	#				item["path"] = "%s/section/%s" % (
+	#					pluginrootpath,
+	#					section.split("] ")[-1]
+	#				)
+	#			item["thumbnail"] = "http://1.bp.blogspot.com/-gc1x9VtxIg0/VbggLVxszWI/AAAAAAAAANo/Msz5Wu0wN4E/s1600/playlist-advertorial.png"
+	#			items.append(item)
 	return items
 
 
@@ -516,7 +516,7 @@ def FShare(path="0", tracking_string="FShare"):
 				urllib.quote_plus("https://www.fshare.vn/file/" + i["linkcode"]),
 				urllib.quote_plus("[FShare] %s (%s)" % (name, size))
 			)
-			item["label"] = "[FShare] %s (%s)" % (name, size)
+			item["label"] = "%s (%s)" % (name, size)
 			item["is_playable"] = True
 		items += [item]
 	if len(fshare_items) >= 20:
