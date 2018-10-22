@@ -35,7 +35,7 @@ sheet_headers = {
 
 
 def GetSheetIDFromSettings():
-	sid = "1zgYG8qTef0kDoSfkzPcDV3Vrz-W0f8Vc0p8UpvraDp0"
+	sid = "1kPp-7OiQbteTTMokHS2YC49SqHuVTWSEnuif5DOuQps"
 	resp, content = http.request(plugin.get_setting("GSheetURL"), "HEAD")
 	try:
 		sid = re.compile("/d/(.+?)/").findall(resp["content-location"])[0]
@@ -195,7 +195,7 @@ def getItems(url_path="0", tq="select A,B,C,D,E"):
 			item["path"] = pluginrootpath + "/executebuiltin/-"
 		else:
 			if "spreadsheets/d/" in item["path"]:
-				# https://docs.google.com/spreadsheets/d/1zgYG8qTef0kDoSfkzPcDV3Vrz-W0f8Vc0p8UpvraDp0/edit#gid=0
+				# https://docs.google.com/spreadsheets/d/1kPp-7OiQbteTTMokHS2YC49SqHuVTWSEnuif5DOuQps/edit#gid=0
 				match_cache = re.search('cache=(.+?)($|&)', item["path"])
 				match_passw = re.search('passw=(.+?)($|&)', item["path"])
 
@@ -257,13 +257,13 @@ def getItems(url_path="0", tq="select A,B,C,D,E"):
 			item["path"] += "?sub=" + urllib.quote_plus(item["label2"].encode("utf8"))
 		items += [item]
 	#if url_path == "0":
-	#	add_playlist_item = {
+	#	add_playlist_item  = {
 	#		"context_menu": [
 	#			ClearPlaylists(""),
 	#		],
-	#		"label": "[COLOR yellow]*** Thêm Playlist ***[/COLOR]",
+	#		"label":"[COLOR yellow]cám ơn các bạn đã ủng hộ[/COLOR]",
 	#		"path": "%s/add-playlist" % (pluginrootpath),
-	#		"thumbnail": "http://1.bp.blogspot.com/-gc1x9VtxIg0/VbggLVxszWI/AAAAAAAAANo/Msz5Wu0wN4E/s1600/playlist-advertorial.png"
+	#		"thumbnail": "http://userscontent2.emaze.com/images/5bc10631-6b26-4d3a-a56f-bd68522f965c/Slide21_Pic1_636000467320479770.png"
 	#	}
 	#	items += [add_playlist_item]
 	#	playlists = plugin.get_storage('playlists')
@@ -275,25 +275,24 @@ def getItems(url_path="0", tq="select A,B,C,D,E"):
 	#				]
 	#			}
 	#			if "@@" in section:
-	#				tmp = section.split("@@")
-	#				passw = tmp[-1]
+	#				tmp     = section.split("@@")
+	#				passw   = tmp[-1]
 	#				section = tmp[0]
 	#				item["label"] = section
-	#				item["path"] = "%s/password-section/%s/%s" % (
+	#				item["path"]  = "%s/password-section/%s/%s" % (
 	#					pluginrootpath,
 	#					passw,
 	#					section.split("] ")[-1]
 	#				)
 	#			else:
 	#				item["label"] = section
-	#				item["path"] = "%s/section/%s" % (
+	#				item["path"]  = "%s/section/%s" % (
 	#					pluginrootpath,
 	#					section.split("] ")[-1]
 	#				)
 	#			item["thumbnail"] = "http://1.bp.blogspot.com/-gc1x9VtxIg0/VbggLVxszWI/AAAAAAAAANo/Msz5Wu0wN4E/s1600/playlist-advertorial.png"
 	#			items.append(item)
 	return items
-
 
 @plugin.route('/remove-playlists/', name="remove_all")
 @plugin.route('/remove-playlists/<item>')
@@ -516,7 +515,7 @@ def FShare(path="0", tracking_string="FShare"):
 				urllib.quote_plus("https://www.fshare.vn/file/" + i["linkcode"]),
 				urllib.quote_plus("[FShare] %s (%s)" % (name, size))
 			)
-			item["label"] = "%s (%s)" % (name, size)
+			item["label"] = "[FShare] %s (%s)" % (name, size)
 			item["is_playable"] = True
 		items += [item]
 	if len(fshare_items) >= 20:
@@ -1096,8 +1095,8 @@ def GetFShareCred():
 
 
 def LoginOKNoti(user="",lvl=""):
-	header = "Đăng nhập thành công!"
-	message = "Chào user [COLOR orange]{}[/COLOR] (lvl [COLOR yellow]{}[/COLOR])".format(user, lvl)
+	header = "[COLOR yellow]Đăng nhập thành công![/COLOR]"
+	message = "Chào [COLOR red]VIP[/COLOR] [COLOR lime]{}[/COLOR] (lvl [COLOR yellow]{}[/COLOR])".format(user, lvl)
 	xbmc.executebuiltin('Notification("{}", "{}", "{}", "")'.format(header, message, "10000"))
 
 
