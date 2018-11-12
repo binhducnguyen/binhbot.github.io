@@ -515,7 +515,7 @@ def FShare(path="0", tracking_string="FShare"):
 				urllib.quote_plus("https://www.fshare.vn/file/" + i["linkcode"]),
 				urllib.quote_plus("[FShare] %s (%s)" % (name, size))
 			)
-			item["label"] = "[FShare] %s (%s)" % (name, size)
+			item["label"] = "%s (%s)" % (name, size)
 			item["is_playable"] = True
 		items += [item]
 	if len(fshare_items) >= 20:
@@ -530,6 +530,27 @@ def FShare(path="0", tracking_string="FShare"):
 			'thumbnail': "https://docs.google.com/drawings/d/12OjbFr3Z5TCi1WREwTWECxNNwx0Kx-FTrCLOigrpqG4/pub?w=256&h=256"
 		})
 	return plugin.finish(items)
+
+
+@plugin.route('/m3u/<path>', name="m3u_default")
+@plugin.route('/m3u/<path>/<tracking_string>')
+def M3U(path="0", tracking_string="M3U"):
+	'''
+	Liệt kê danh sách các item của sheet M3U Playlist
+	Parameters
+	----------
+	path : string
+		Link chưa nội dung playlist m3u
+	tracking_string : string
+		 Tên dễ đọc của view
+	'''
+	GA(  # tracking
+		"M3U - %s" % tracking_string,
+		"/m3u/%s" % path
+	)
+
+	items = M3UToItems(path)
+	return plugin.finish(AddTracking(items))
 
 
 @plugin.route('/m3u-section/<path>/<tracking_string>')
