@@ -14,9 +14,9 @@ import time
 import thread
 import socket
 from datetime import datetime
-# Tham kháº£o xbmcswift2 framework cho kodi addon táº¡i
+# Tham khảo xbmcswift2 framework cho kodi addon tại
 # http://xbmcswift2.readthedocs.io/en/latest/
-from kodiswift import Plugin, xbmc, xbmcaddon, xbmcgui, actions
+from kodiswift import Plugin, xbmc, xbmcaddon, xbmcgui, actions, xbmcplugin
 path = xbmc.translatePath(
 	xbmcaddon.Addon().getAddonInfo('path')).decode("utf-8")
 cache = xbmc.translatePath(os.path.join(path, ".cache"))
@@ -25,19 +25,19 @@ addons_folder = xbmc.translatePath('special://home/addons')
 image = xbmc.translatePath(os.path.join(path, "icon.png"))
 
 plugin = Plugin()
-addon = xbmcaddon.Addon("plugin.video.ndbzone")
-pluginrootpath = "plugin://plugin.video.ndbzone"
+addon = xbmcaddon.Addon("plugin.video.thongld.vnplaylist")
+pluginrootpath = "plugin://plugin.video.thongld.vnplaylist"
 http = httplib2.Http(cache, disable_ssl_certificate_validation=True)
 query_url = "https://docs.google.com/spreadsheets/d/{sid}/gviz/tq?gid={gid}&headers=1&tq={tq}"
 sheet_headers = {
 	"User-Agent": "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.3; WOW64; Trident/7.0)",
-	"Accept-Encoding": "gzip, deflate, sdch, br"
+	"Accept-Encoding": "gzip, deflate, sdch"
 }
 
 
 def GetSheetIDFromSettings():
-	sid = "1zgYG8qTef0kDoSfkzPcDV3Vrz-W0f8Vc0p8UpvraDp0"
-	resp, content = http.request(plugin.get_setting("GSheetURL"), "HEAD")
+	sid = "1zL6Kw4ZGoNcIuW9TAlHWZrNIJbDU5xHTtz-o8vpoJss"
+	resp, content = http.request(get_fshare_setting("GSheetURL"), "HEAD")
 	try:
 		sid = re.compile("/d/(.+?)/").findall(resp["content-location"])[0]
 	except:
@@ -47,11 +47,11 @@ def GetSheetIDFromSettings():
 
 def M3UToItems(url_path=""):
 	'''
-	HĂ m chuyá»ƒn Ä‘á»•i m3u playlist sang xbmcswift2 items
+	Hàm chuyển đổi m3u playlist sang xbmcswift2 items
 	Parameters
 	----------
 	url_path : string
-		link chá»©a ná»™i dung m3u playlist
+		link chứa nội dung m3u playlist
 	'''
 	item_re = '\#EXTINF(.*?,)(.*?)\n(.*?)\n'
 	(resp, content) = http.request(
@@ -76,13 +76,13 @@ def M3UToItems(url_path=""):
 			"path": path.strip(),
 		}
 
-		# Náº¿u lĂ  playable link
+		# Nếu là playable link
 		if "://" in item["path"]:
-			# Kiá»ƒu link plugin://
+			# Kiểu link plugin://
 			if item["path"].startswith("plugin://"):
 				item["is_playable"] = True
 				item["info"] = {"type": "video"}
-			# Kiá»ƒu link .ts
+			# Kiểu link .ts
 			elif re.search("\.ts$", item["path"]):
 				item["path"] = "plugin://plugin.video.f4mTester/?url=%s&streamtype=TSDOWNLOADER&use_proxy_for_chunks=True&name=%s" % (
 					urllib.quote(item["path"]),
@@ -90,7 +90,7 @@ def M3UToItems(url_path=""):
 				)
 				item["path"] = pluginrootpath + \
 					"/executebuiltin/" + urllib.quote_plus(item["path"])
-			# Kiá»ƒu direct link
+			# Kiểu direct link
 			else:
 				if "acestream" in item["path"]:
 					item["label"] = "[AceStream] %s" % item["label"]
@@ -99,7 +99,7 @@ def M3UToItems(url_path=""):
 				item["is_playable"] = True
 				item["info"] = {"type": "video"}
 		else:
-			# Náº¿u khĂ´ng pháº£i...
+			# Nếu không phải...
 			item["is_playable"] = False
 
 		# Hack xbmcswift2 item to set both is_playable and is_folder to False
@@ -117,16 +117,16 @@ def getCachedItems(url_path="0"):
 
 def getItems(url_path="0", tq="select A,B,C,D,E"):
 	'''
-	Táº¡o items theo chuáº©n xbmcswift2 tá»« Google Spreadsheet
+	Tạo items theo chuẩn xbmcswift2 từ Google Spreadsheet
 	Parameters
 	----------
 	url_path : string
-		Náº¿u truyá»n "gid" cá»§a Repositories sheet:
-			CĂ i tá»± Ä‘á»™ng toĂ n bá»™ repo trong Repositories sheet
-		Náº¿u truyá»n link download zip repo
-			Download vĂ  cĂ i zip repo Ä‘Ă³
+		Nếu truyền "gid" của Repositories sheet:
+			Cài tự động toàn bộ repo trong Repositories sheet
+		Nếu truyền link download zip repo
+			Download và cài zip repo đó
 	tracking_string : string
-		 TĂªn dá»… Ä‘á»c cá»§a view
+		 Tên dễ đọc của view
 	'''
 	# Default VN Open Playlist Sheet ID
 
@@ -160,7 +160,7 @@ def getItems(url_path="0", tq="select A,B,C,D,E"):
 		item = {}
 		item["label"] = getValue(row["c"][0]).encode("utf-8")
 		item["label2"] = getValue(row["c"][4])
-		# Náº¿u phĂ¡t hiá»‡n spreadsheet khĂ¡c vá»›i VNOpenPlaylist
+		# Nếu phát hiện spreadsheet khác với VNOpenPlaylist
 		new_path = getValue(row["c"][1])
 		if "@" in url_path and "@" not in new_path and "section/" in new_path:
 			gid = re.compile("section/(\d+)").findall(new_path)[0]
@@ -258,55 +258,55 @@ def getItems(url_path="0", tq="select A,B,C,D,E"):
 				item["path"] = pluginrootpath + \
 					"/executebuiltin/" + urllib.quote_plus(item["path"])
 			else:
-				# Náº¿u lĂ  direct link thĂ¬ route Ä‘áº¿n hĂ m play_url
+				# Nếu là direct link thì route đến hàm play_url
 				item["is_playable"] = True
 				item["info"] = {"type": "video"}
 				item["path"] = pluginrootpath + "/play/" + urllib.quote_plus(item["path"])
 		if item["label2"].startswith("http"):
 			item["path"] += "?sub=" + urllib.quote_plus(item["label2"].encode("utf8"))
 		items += [item]
-	#if url_path == "0":
-	#	add_playlist_item = {
-	#		"context_menu": [
-	#			ClearPlaylists(""),
-	#		],
-	#		"label": "[COLOR yellow]*** ThĂªm Playlist ***[/COLOR]",
-	#		"path": "%s/add-playlist" % (pluginrootpath),
-	#		"thumbnail": "http://1.bp.blogspot.com/-gc1x9VtxIg0/VbggLVxszWI/AAAAAAAAANo/Msz5Wu0wN4E/s1600/playlist-advertorial.png",
-	#		"is_playable": True,
-	#		"info": {"type": "video"}
-	#
-	#	}
-	#	items += [add_playlist_item]
-	#	playlists = plugin.get_storage('playlists')
-	#	if 'sections' in playlists:
-	#		for section in playlists['sections']:
-	#			item = {
-	#				"context_menu": [
-	#					ClearPlaylists(section),
-	#				]
-	#			}
-	#			if "@@" in section:
-	#				tmp = section.split("@@")
-	#				passw = tmp[-1]
-	#				section = tmp[0]
-	#				item["label"] = section
-	#				item["path"] = "%s/password-section/%s/%s" % (
-	#					pluginrootpath,
-	#					passw,
-	#					section.split("] ")[-1]
-	#				)
-	#			else:
-	#				item["label"] = section
-	#				item["path"] = "%s/section/%s" % (
-	#					pluginrootpath,
-	#					section.split("] ")[-1]
-	#				)
-	#			item["thumbnail"] = "http://1.bp.blogspot.com/-gc1x9VtxIg0/VbggLVxszWI/AAAAAAAAANo/Msz5Wu0wN4E/s1600/playlist-advertorial.png"
-	#			items.append(item)
+	if url_path == "0":
+		add_playlist_item = {
+			"context_menu": [
+				ClearPlaylists(""),
+			],
+			"label": "[COLOR yellow]*** Thêm Playlist ***[/COLOR]",
+			"path": "%s/add-playlist" % (pluginrootpath),
+			"thumbnail": "http://1.bp.blogspot.com/-gc1x9VtxIg0/VbggLVxszWI/AAAAAAAAANo/Msz5Wu0wN4E/s1600/playlist-advertorial.png",
+			"is_playable": True,
+			"info": {"type": "video"}
+
+		}
+		items += [add_playlist_item]
+		playlists = plugin.get_storage('playlists')
+		if 'sections' in playlists:
+			for section in playlists['sections']:
+				item = {
+					"context_menu": [
+						ClearPlaylists(section),
+					]
+				}
+				if "@@" in section:
+					tmp = section.split("@@")
+					passw = tmp[-1]
+					section = tmp[0]
+					item["label"] = section
+					item["path"] = "%s/password-section/%s/%s" % (
+						pluginrootpath,
+						passw,
+						section.split("] ")[-1]
+					)
+				else:
+					item["label"] = section
+					item["path"] = "%s/section/%s" % (
+						pluginrootpath,
+						section.split("] ")[-1]
+					)
+				item["thumbnail"] = "http://1.bp.blogspot.com/-gc1x9VtxIg0/VbggLVxszWI/AAAAAAAAANo/Msz5Wu0wN4E/s1600/playlist-advertorial.png"
+				items.append(item)
 	return items
 
-	
+
 @plugin.route('/remove-playlists/', name="remove_all")
 @plugin.route('/remove-playlists/<item>')
 def RemovePlaylists(item=""):
@@ -326,9 +326,9 @@ def RemovePlaylists(item=""):
 
 def ClearPlaylists(item=""):
 	if item == "":
-		label = '[COLOR yellow]XĂ³a háº¿t Playlists[/COLOR]'
+		label = '[COLOR yellow]Xóa hết Playlists[/COLOR]'
 	else:
-		label = '[COLOR yellow]XĂ³a "%s"[/COLOR]' % item
+		label = '[COLOR yellow]Xóa "%s"[/COLOR]' % item
 
 	return (label, actions.background(
 		"%s/remove-playlists/%s" % (pluginrootpath, urllib.quote_plus(item))
@@ -337,11 +337,11 @@ def ClearPlaylists(item=""):
 
 def getValue(colid):
 	'''
-	HĂ m láº¥y giĂ¡ trá»‹ theo cá»™t cá»§a cá»§a má»—i dĂ²ng sheet
+	Hàm lấy giá trị theo cột của của mỗi dòng sheet
 	Parameters
 	----------
 	colid : string
-		Sá»‘ thá»± tá»± cá»§a cá»™t
+		Số thự tự của cột
 	'''
 	if colid is not None and colid["v"] is not None:
 		return colid["v"]
@@ -363,37 +363,42 @@ def CachedSection(path="0", tracking_string="Home"):
 		"Section - %s" % tracking_string,
 		"/section/%s" % path
 	)
+	plugin.add_sort_method(xbmcplugin.SORT_METHOD_UNSORTED)
+	plugin.add_sort_method(xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
 	return plugin.finish(getCachedItems(path))
 
 
 @plugin.route('/password-section/<password>/<path>/<tracking_string>')
 def PasswordSection(password="0000", path="0", tracking_string="Home"):
 	'''
-	Liá»‡t kĂª danh sĂ¡ch cĂ¡c item cá»§a má»™t sheet
+	Liệt kê danh sách các item của một sheet
 	Parameters
 	----------
 	path : string
-		"gid" cá»§a sheet
+		"gid" của sheet
 	tracking_string : string
-		 TĂªn dá»… Ä‘á»c cá»§a view
+		 Tên dễ đọc của view
 	'''
 	GA(  # tracking
 		"Password Section - %s" % tracking_string,
 		"/password-section/%s" % path
 	)
 	passwords = plugin.get_storage('passwords')
+	plugin.add_sort_method(xbmcplugin.SORT_METHOD_UNSORTED)
+	plugin.add_sort_method(xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
+
 	if password in passwords and (time.time() - passwords[password] < 1800):
 		items = AddTracking(getItems(path))
 		return plugin.finish(items)
 	else:
-		passw_string = plugin.keyboard(heading='Nháº­p password')
+		passw_string = plugin.keyboard(heading='Nhập password')
 		if passw_string == password:
 			passwords[password] = time.time()
 			items = AddTracking(getItems(path))
 			return plugin.finish(items)
 		else:
-			header = "Sai máº­t kháº©u!!!"
-			message = "Máº­t kháº©u khĂ´ng khá»›p. KhĂ´ng táº£i Ä‘Æ°á»£c ná»™i dung"
+			header = "Sai mật khẩu!!!"
+			message = "Mật khẩu không khớp. Không tải được nội dung"
 			xbmc.executebuiltin('Notification("%s", "%s", "%d", "%s")' %
 			                    (header, message, 10000, ''))
 			return plugin.finish()
@@ -402,26 +407,28 @@ def PasswordSection(password="0000", path="0", tracking_string="Home"):
 @plugin.route('/section/<path>/<tracking_string>')
 def Section(path="0", tracking_string="Home"):
 	'''
-	Liá»‡t kĂª danh sĂ¡ch cĂ¡c item cá»§a má»™t sheet
+	Liệt kê danh sách các item của một sheet
 	Parameters
 	----------
 	path : string
-		"gid" cá»§a sheet
+		"gid" của sheet
 	tracking_string : string
-		 TĂªn dá»… Ä‘á»c cá»§a view
+		 Tên dễ đọc của view
 	'''
 	GA(  # tracking
 		"Section - %s" % tracking_string,
 		"/section/%s" % path
 	)
 	items = AddTracking(getItems(path))
+	plugin.add_sort_method(xbmcplugin.SORT_METHOD_UNSORTED)
+	plugin.add_sort_method(xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
 	return plugin.finish(items)
 
 
 @plugin.route('/add-playlist/<tracking_string>')
 def AddPlaylist(tracking_string="Add Playlist"):
 	sheet_url = plugin.keyboard(
-		heading='Nháº­p URL cá»§a Google Spreadsheet (cĂ³ há»— trá»£ link rĂºt gá»n nhÆ° bit.ly, goo.gl)')
+		heading='Nhập URL của Google Spreadsheet (có hỗ trợ link rút gọn như bit.ly, goo.gl)')
 	if sheet_url:
 		if not re.match("^https*://", sheet_url):
 			sheet_url = "https://" + sheet_url
@@ -431,7 +438,7 @@ def AddPlaylist(tracking_string="Add Playlist"):
 				"/d/(.+?)/.+?gid=(\d+)").findall(resp["content-location"])[0]
 			match_passw = re.search('passw=(.+?)($|&)', resp["content-location"])
 			playlists = plugin.get_storage('playlists')
-			name = plugin.keyboard(heading='Äáº·t tĂªn cho Playlist')
+			name = plugin.keyboard(heading='Đặt tên cho Playlist')
 
 			item = "[[COLOR yellow]%s[/COLOR]] %s@%s" % (name, gid, sid)
 			if match_passw:
@@ -442,11 +449,11 @@ def AddPlaylist(tracking_string="Add Playlist"):
 				playlists["sections"] = [item]
 			xbmc.executebuiltin('Container.Refresh')
 		except:
-			line1 = "Vui lĂ²ng nháº­p URL há»£p lá»‡. VĂ­ dá»¥ dáº¡ng Ä‘áº§y Ä‘á»§:"
+			line1 = "Vui lòng nhập URL hợp lệ. Ví dụ dạng đầy đủ:"
 			line2 = "http://docs.google.com/spreadsheets/d/xxx/edit#gid=###"
-			line3 = "Hoáº·c rĂºt gá»n: http://bit.ly/xxxxxx hoáº·c http://goo.gl/xxxxx"
+			line3 = "Hoặc rút gọn: http://bit.ly/xxxxxx hoặc http://goo.gl/xxxxx"
 			dlg = xbmcgui.Dialog()
-			dlg.ok("URL khĂ´ng há»£p lá»‡!!!", line1, line2, line3)
+			dlg.ok("URL không hợp lệ!!!", line1, line2, line3)
 
 
 @plugin.route('/acelist/<path>/<tracking_string>')
@@ -473,6 +480,8 @@ def AceList(path="0", tracking_string="AceList"):
 		item["is_playable"] = True
 		item["info"] = {"type": "video"}
 		items += [item]
+	plugin.add_sort_method(xbmcplugin.SORT_METHOD_UNSORTED)
+	plugin.add_sort_method(xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
 	return plugin.finish(items)
 
 
@@ -502,8 +511,11 @@ def FShare(path="0", tracking_string="FShare"):
 		folder_id, page)
 	(resp, content) = http.request(
 		fshare_folder_api, "GET",
-		headers={"Accept": "application/json, text/plain, */*",
-                    "Accept-Encoding": "gzip, deflate, sdch, br"}
+		headers={
+			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36",
+			"Accept": "application/json, text/plain, */*",
+			"Accept-Encoding": "gzip, deflate, sdch, br"
+		}
 	)
 	items = []
 	fshare_items = json.loads(content)["items"]
@@ -544,19 +556,21 @@ def FShare(path="0", tracking_string="FShare"):
 			),
 			'thumbnail': "https://docs.google.com/drawings/d/12OjbFr3Z5TCi1WREwTWECxNNwx0Kx-FTrCLOigrpqG4/pub?w=256&h=256"
 		})
+	plugin.add_sort_method(xbmcplugin.SORT_METHOD_UNSORTED)
+	plugin.add_sort_method(xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
 	return plugin.finish(items)
 
 
 @plugin.route('/m3u-section/<path>/<tracking_string>')
 def M3USection(path="0", tracking_string="M3U"):
 	'''
-	Liá»‡t kĂª danh sĂ¡ch cĂ¡c item cá»§a sheet M3U Playlist
+	Liệt kê danh sách các item của sheet M3U Playlist
 	Parameters
 	----------
 	path : string
-		"gid" cá»§a sheet M3U Playlist
+		"gid" của sheet M3U Playlist
 	tracking_string : string
-		 TĂªn dá»… Ä‘á»c cá»§a view
+		 Tên dễ đọc của view
 	'''
 	GA(  # tracking
 		"M3U Section - %s" % tracking_string,
@@ -564,12 +578,14 @@ def M3USection(path="0", tracking_string="M3U"):
 	)
 	items = getItems(path)
 	for item in items:
-		# Chá»‰nh láº¡i thĂ nh m3u item
+		# Chỉnh lại thành m3u item
 		item["path"] = item["path"].replace("/play/", "/m3u/")
 		if "is_playable" in item:
 			del item["is_playable"]
 		if "playable" in item:
 			del item["playable"]
+	plugin.add_sort_method(xbmcplugin.SORT_METHOD_UNSORTED)
+	plugin.add_sort_method(xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
 	return plugin.finish(AddTracking(items))
 
 
@@ -577,13 +593,13 @@ def M3USection(path="0", tracking_string="M3U"):
 @plugin.route('/m3u/<path>/<tracking_string>')
 def M3U(path="0", tracking_string="M3U"):
 	'''
-	Liá»‡t kĂª danh sĂ¡ch cĂ¡c item cá»§a sheet M3U Playlist
+	Liệt kê danh sách các item của sheet M3U Playlist
 	Parameters
 	----------
 	path : string
-		Link chÆ°a ná»™i dung playlist m3u
+		Link chưa nội dung playlist m3u
 	tracking_string : string
-		 TĂªn dá»… Ä‘á»c cá»§a view
+		 Tên dễ đọc của view
 	'''
 	GA(  # tracking
 		"M3U - %s" % tracking_string,
@@ -591,30 +607,32 @@ def M3U(path="0", tracking_string="M3U"):
 	)
 
 	items = M3UToItems(path)
+	plugin.add_sort_method(xbmcplugin.SORT_METHOD_UNSORTED)
+	plugin.add_sort_method(xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
 	return plugin.finish(AddTracking(items))
 
 
 @plugin.route('/install-repo/<path>/<tracking_string>')
 def InstallRepo(path="0", tracking_string=""):
 	'''
-	CĂ i Ä‘áº·t repo
+	Cài đặt repo
 	Parameters
 	----------
 	path : string
-		Náº¿u truyá»n "gid" cá»§a Repositories sheet:
-			CĂ i tá»± Ä‘á»™ng toĂ n bá»™ repo trong Repositories sheet
-		Náº¿u truyá»n link download zip repo
-			Download vĂ  cĂ i zip repo Ä‘Ă³
+		Nếu truyền "gid" của Repositories sheet:
+			Cài tự động toàn bộ repo trong Repositories sheet
+		Nếu truyền link download zip repo
+			Download và cài zip repo đó
 	tracking_string : string
-		 TĂªn dá»… Ä‘á»c cá»§a view
+		 Tên dễ đọc của view
 	'''
 	GA(  # tracking
 		"Install Repo - %s" % tracking_string,
 		"/install-repo/%s" % path
 	)
-	if path.isdigit():  # xĂ¡c Ä‘á»‹nh GID
+	if path.isdigit():  # xác định GID
 		pDialog = xbmcgui.DialogProgress()
-		pDialog.create('Vui lĂ²ng Ä‘á»£i', 'Báº¯t Ä‘áº§u cĂ i repo', 'Äang táº£i...')
+		pDialog.create('Vui lòng đợi', 'Bắt đầu cài repo', 'Đang tải...')
 		items = getItems(path)
 		total = len(items)
 		i = 0
@@ -622,7 +640,7 @@ def InstallRepo(path="0", tracking_string=""):
 		installed = []
 		for item in items:
 			done = int(100 * i / total)
-			pDialog.update(done, 'Äang táº£i', item["label"] + '...')
+			pDialog.update(done, 'Đang tải', item["label"] + '...')
 			if ":/" not in item["label2"]:
 				result = xbmc.executeJSONRPC(
 					'{"jsonrpc":"2.0","method":"Addons.GetAddonDetails", "params":{"addonid":"%s", "properties":["version"]}, "id":1}' % item["label"])
@@ -651,24 +669,24 @@ def InstallRepo(path="0", tracking_string=""):
 		pDialog.close()
 		if len(failed) > 0:
 			dlg = xbmcgui.Dialog()
-			s = "KhĂ´ng thá»ƒ cĂ i cĂ¡c rep sau:\n[COLOR orange]%s[/COLOR]" % "\n".join(
+			s = "Không thể cài các rep sau:\n[COLOR orange]%s[/COLOR]" % "\n".join(
 				failed)
-			dlg.ok('ChĂº Ă½: KhĂ´ng cĂ i Ä‘á»§ repo!', s)
+			dlg.ok('Chú ý: Không cài đủ repo!', s)
 		else:
 			dlg = xbmcgui.Dialog()
-			s = "Táº¥t cáº£ repo Ä‘Ă£ Ä‘Æ°á»£c cĂ i thĂ nh cĂ´ng\n%s" % "\n".join(installed)
-			dlg.ok('CĂ i Repo thĂ nh cĂ´ng!', s)
+			s = "Tất cả repo đã được cài thành công\n%s" % "\n".join(installed)
+			dlg.ok('Cài Repo thành công!', s)
 
-	else:  # cĂ i repo riĂªng láº»
+	else:  # cài repo riêng lẻ
 		try:
 			download(path, "")
 			dlg = xbmcgui.Dialog()
-			s = "Repo %s Ä‘Ă£ Ä‘Æ°á»£c cĂ i thĂ nh cĂ´ng" % tracking_string
-			dlg.ok('CĂ i Repo thĂ nh cĂ´ng!', s)
+			s = "Repo %s đã được cài thành công" % tracking_string
+			dlg.ok('Cài Repo thành công!', s)
 		except:
 			dlg = xbmcgui.Dialog()
-			s = "VĂ¹i lĂ²ng thá»­ cĂ i láº¡i láº§n sau"
-			dlg.ok('CĂ i repo tháº¥t báº¡i!', s)
+			s = "Vùi lòng thử cài lại lần sau"
+			dlg.ok('Cài repo thất bại!', s)
 
 	xbmc.executebuiltin("XBMC.UpdateLocalAddons()")
 	xbmc.executebuiltin("XBMC.UpdateAddonRepos()")
@@ -677,13 +695,13 @@ def InstallRepo(path="0", tracking_string=""):
 @plugin.route('/repo-section/<path>/<tracking_string>')
 def RepoSection(path="0", tracking_string=""):
 	'''
-	Liá»‡t kĂª cĂ¡c repo
+	Liệt kê các repo
 	Parameters
 	----------
 	path : string
 		Link download zip repo.
 	tracking_string : string
-		TĂªn dá»… Ä‘á»c cá»§a view
+		Tên dễ đọc của view
 	'''
 	GA(  # tracking
 		"Repo Section - %s" % tracking_string,
@@ -699,10 +717,10 @@ def RepoSection(path="0", tracking_string=""):
 	items = AddTracking(items)
 
 	install_all_item = {
-		"label": "[COLOR green]Tá»± Ä‘á»™ng cĂ i táº¥t cáº£ Repo dÆ°á»›i (khuyĂªn dĂ¹ng)[/COLOR]".decode("utf-8"),
+		"label": "[COLOR green]Tự động cài tất cả Repo dưới (khuyên dùng)[/COLOR]".decode("utf-8"),
 		"path": pluginrootpath + "/install-repo/%s/%s" % (path, urllib.quote_plus("Install all repo")),
 		"is_playable": False,
-		"info": {"plot": "Báº¡n nĂªn cĂ i táº¥t cáº£ repo Ä‘á»ƒ sá»­ dá»¥ng Ä‘áº§y Ä‘á»§ tĂ­nh nÄƒng cá»§a [VN Open Playlist]"}
+		"info": {"plot": "Bạn nên cài tất cả repo để sử dụng đầy đủ tính năng của [VN Open Playlist]"}
 	}
 	items = [install_all_item] + items
 	return plugin.finish(items)
@@ -715,9 +733,9 @@ def download(download_path, repo_id):
 	path : string
 		Link download zip repo.
 	repo_id : string
-		TĂªn thÆ° má»¥c cá»§a repo Ä‘á»ƒ kiá»ƒm tra Ä‘Ă£ cĂ i chÆ°a.
-		Máº·c Ä‘á»‹nh Ä‘Æ°á»£c gĂ¡n cho item["label2"].
-		Truyá»n "" Ä‘á»ƒ bá» qua Kiá»ƒm tra Ä‘Ă£ cĂ i
+		Tên thư mục của repo để kiểm tra đã cài chưa.
+		Mặc định được gán cho item["label2"].
+		Truyền "" để bỏ qua Kiểm tra đã cài
 	'''
 	if repo_id == "":
 		repo_id = "temp"
@@ -736,22 +754,21 @@ def download(download_path, repo_id):
 
 def AddTracking(items):
 	'''
-	HĂ m thĂªm chuá»—i tracking cho cĂ¡c item
+	Hàm thêm chuỗi tracking cho các item
 	Parameters
 	----------
 	items : list
-		Danh sĂ¡ch cĂ¡c item theo chuáº©n xbmcswift2.
+		Danh sách các item theo chuẩn xbmcswift2.
 	'''
 
 	for item in items:
-		if "plugin.video.ndbzone" in item["path"]:
+		if "plugin.video.thongld.vnplaylist" in item["path"]:
 			tmps = item["path"].split("?")
 			if len(tmps) == 1:
 				tail = ""
 			else:
 				tail = tmps[1]
-			item["path"] = "%s/%s?%s" % (tmps[0],
-			                             urllib.quote_plus(item["label"]), tail)
+			item["path"] = "%s/%s?%s" % (tmps[0], urllib.quote_plus(item["label"]), tail)
 	return items
 
 
@@ -805,8 +822,8 @@ def get_playable_url(url):
 				get_thvl, "GET"
 			)
 		except:
-			header = "Server quĂ¡ táº£i!"
-			message = "Xin vui lĂ²ng thá»­ láº¡i sau"
+			header = "Server quá tải!"
+			message = "Xin vui lòng thử lại sau"
 			xbmc.executebuiltin('Notification("%s", "%s", "%d", "%s")' %
 			                    (header, message, 10000, ''))
 			return ""
@@ -838,8 +855,8 @@ def get_playable_url(url):
 				get_sphim, "GET"
 			)
 		except:
-			header = "Server quĂ¡ táº£i!"
-			message = "Xin vui lĂ²ng thá»­ láº¡i sau"
+			header = "Server quá tải!"
+			message = "Xin vui lòng thử lại sau"
 			xbmc.executebuiltin('Notification("%s", "%s", "%d", "%s")' %
 			                    (header, message, 10000, ''))
 			return ""
@@ -1009,8 +1026,8 @@ def get_playable_url(url):
 		try:
 			url = json.loads(content)["list"][0]["file"]
 		except:
-			header = "CĂ³ lá»—i xáº£y ra!"
-			message = "KhĂ´ng láº¥y Ä‘Æ°á»£c link (link há»ng hoáº·c bá»‹ xĂ³a)"
+			header = "Có lỗi xảy ra!"
+			message = "Không lấy được link (link hỏng hoặc bị xóa)"
 			xbmc.executebuiltin('Notification("%s", "%s", "%d", "%s")' % (header, message, 10000, ''))
 			return ""
 	elif "pscp.tv" in url:
@@ -1036,32 +1053,25 @@ def get_playable_url(url):
 					"token": cred["token"],
 					"password": ""
 				}
-				
-                (resp, content) = http.request(
+
+				(resp, content) = http.request(
 					convert_ipv4_url("https://api2.fshare.vn/api/session/download"), "POST",
 					body=json.dumps(data),
 					headers=fshare_headers
 				)
-				
-				#(resp, content) = http.request(
-				#	"https://118.69.164.19/api/session/download", "POST",
-				#	convert_ipv4_url("https://api2.fshare.vn/api/session/download"), "POST",
-				#	body=json.dumps(data),
-				#	headers=fshare_headers
-				
 				url = json.loads(content)["location"]
 				url = convert_ipv4_url(url)
 				if resp.status == 404:
-					header = "KhĂ´ng láº¥y Ä‘Æ°á»£c link FShare VIP!"
-					message = "Link khĂ´ng tá»“n táº¡i hoáº·c file Ä‘Ă£ bá»‹ xĂ³a"
+					header = "Không lấy được link FShare VIP!"
+					message = "Link không tồn tại hoặc file đã bị xóa"
 					xbmc.executebuiltin('Notification("%s", "%s", "%d", "%s")' % (header, message, 10000, ''))
 					return None
 				(resp, content) = http.request(
 					url, "HEAD"
 				)
 				if '/ERROR' in resp['content-location']:
-					header = "KhĂ´ng láº¥y Ä‘Æ°á»£c link FShare VIP!"
-					message = "Link khĂ´ng tá»“n táº¡i hoáº·c file Ä‘Ă£ bá»‹ xĂ³a"
+					header = "Không lấy được link FShare VIP!"
+					message = "Link không tồn tại hoặc file đã bị xóa"
 					xbmc.executebuiltin('Notification("%s", "%s", "%d", "%s")' % (header, message, 10000, ''))
 					return None
 				return url
@@ -1084,9 +1094,8 @@ def convert_ipv4_url(url):
 	ipv4_addrs = [addr[4][0] for addr in addrs if addr[0] == socket.AF_INET]
 	url = url.replace(host, ipv4_addrs[0])
 	return url
-	
+
 def LoginFShare(uname,pword):
-	#login_uri = "https://118.69.164.19/api/user/login"
 	login_uri = "https://api2.fshare.vn/api/user/login"
 	login_uri = convert_ipv4_url(login_uri)
 	fshare_headers = {
@@ -1106,7 +1115,7 @@ def get_fshare_setting(s):
 	try:
 		return plugin.get_setting(s)
 	except: return ""
-	
+
 def GetFShareCred():
 	try:
 		_hash = get_fshare_setting("hash")
@@ -1129,10 +1138,10 @@ def GetFShareCred():
 		except: 
 			dialog = xbmcgui.Dialog()
 			yes = dialog.yesno(
-				'ÄÄƒng nháº­p khĂ´ng thĂ nh cĂ´ng!\n',
-				'[COLOR yellow]Báº¡n muá»‘n nháº­p tĂ i khoáº£n FShare VIP bĂ¢y giá» khĂ´ng?[/COLOR]',
-				yeslabel='OK, nháº­p ngay',
-				nolabel='Bá» qua'
+				'Đăng nhập không thành công!\n',
+				'[COLOR yellow]Bạn muốn nhập tài khoản FShare VIP bây giờ không?[/COLOR]',
+				yeslabel='OK, nhập ngay',
+				nolabel='Bỏ qua'
 			)
 			if yes:
 				plugin.open_settings()
@@ -1141,13 +1150,12 @@ def GetFShareCred():
 
 
 def LoginOKNoti(user="",lvl=""):
-	header = "ÄÄƒng nháº­p thĂ nh cĂ´ng!"
-	message = "ChĂ o user [COLOR red]{}[/COLOR] (lvl [COLOR white]{}[/COLOR])".format(user, lvl)
+	header = "Đăng nhập thành công!"
+	message = "Chào user [COLOR orange]{}[/COLOR] (lvl [COLOR yellow]{}[/COLOR])".format(user, lvl)
 	xbmc.executebuiltin('Notification("{}", "{}", "{}", "")'.format(header, message, "10000"))
 
 
 def GetFShareUser(cred):
-	#user_url = "https://118.69.164.19/api/user/get"
 	user_url = "https://api2.fshare.vn/api/user/get"
 	user_url = convert_ipv4_url(user_url)
 	headers = {
@@ -1178,20 +1186,20 @@ def GetPlayLinkFromDriveID(drive_id):
 
 def GA(title="Home", page="/"):
 	'''
-	HĂ m thá»‘ng kĂª lÆ°á»£t sá»­ dá»¥ng báº±ng Google Analytics (GA)
+	Hàm thống kê lượt sử dụng bằng Google Analytics (GA)
 	Parameters
 	----------
 	title : string
-		TĂªn dá»… Ä‘á»c cá»§a view.
+		Tên dễ đọc của view.
 	page : string
-		ÄÆ°á»ng dáº«n cá»§a view.
+		Đường dẫn của view.
 	'''
 	try:
 		ga_url = "http://www.google-analytics.com/collect"
 		client_id = open(cid_path).read()
 		data = {
 			'v': '1',
-			'tid': 'UA-52209804-5',  # Thay GA id cá»§a báº¡n á»Ÿ Ä‘Ă¢y
+			'tid': 'UA-52209804-5',  # Thay GA id của bạn ở đây
 			'cid': client_id,
 			't': 'pageview',
 			'dp': "VNPlaylist%s" % page,
@@ -1237,8 +1245,8 @@ def version_cmp(local_version, download_version):
 	return cmp(normalize(local_version), normalize(download_version))
 
 
-# Táº¡o client id cho GA tracking
-# Tham kháº£o client id táº¡i https://support.google.com/analytics/answer/6205850?hl=vi
+# Tạo client id cho GA tracking
+# Tham khảo client id tại https://support.google.com/analytics/answer/6205850?hl=vi
 device_path = xbmc.translatePath('special://userdata')
 if os.path.exists(device_path) == False:
 	os.mkdir(device_path)
