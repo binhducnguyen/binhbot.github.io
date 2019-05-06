@@ -304,7 +304,7 @@ def getItems(url_path="0", tq="select A,B,C,D,E"):
 #					)
 #				item["thumbnail"] = "http://1.bp.blogspot.com/-gc1x9VtxIg0/VbggLVxszWI/AAAAAAAAANo/Msz5Wu0wN4E/s1600/playlist-advertorial.png"
 #				items.append(item)
-#	return items
+	return items
 
 
 @plugin.route('/remove-playlists/', name="remove_all")
